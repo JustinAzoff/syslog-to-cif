@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -41,10 +42,17 @@ func handleLog(conn net.Conn, noticeChan chan Notice) {
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		var notice Notice
-		fmt.Println("Got " + scanner.Text())
-		err := json.Unmarshal(scanner.Bytes(), &notice)
+		buf := scanner.Bytes()
+		braceOffset := bytes.IndexByte(buf, '{')
+		if braceOffset == -1 {
+			log.Printf("No open brace found in msg: %q", scanner.Text())
+			continue
+		}
+		jsonBytes := buf[braceOffset:]
+		err := json.Unmarshal(jsonBytes, &notice)
 		if err != nil {
 			log.Printf("Error parsing json from connection: %v", err)
+			continue
 		}
 		log.Printf("Got %+v", notice)
 	}
