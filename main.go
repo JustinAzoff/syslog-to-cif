@@ -106,7 +106,7 @@ func receive(addr string, port int, cifEndpoint string) {
 			}
 		case note := <-noticeChan:
 			noticeBuffer = append(noticeBuffer, note)
-			if len(noticeBuffer) > 50 {
+			if len(noticeBuffer) >= 50 {
 				send = true
 			}
 		}
