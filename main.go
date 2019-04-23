@@ -68,13 +68,12 @@ func handleLog(conn net.Conn, noticeChan chan Notice) {
 func createIndicators(c *cif.Client, notices []Notice) error {
 	var indicators cif.IndicatorList
 	for _, n := range notices {
-		log.Printf("Creating %+v", n)
 		i := cif.Indicator{
 			Indicator:   n.Src,
 			Description: fmt.Sprintf("%s: %s", n.Note, n.Msg),
 			Tags:        []string{"bro"},
 		}
-		log.Printf("Creating %+v %+v", n, i)
+		log.Printf("Creating %s %s", i.Indicator, i.Description)
 		indicators = append(indicators, i)
 	}
 	c.CreateIndicators(indicators)
