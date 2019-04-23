@@ -35,19 +35,18 @@ func listen(addr string, port int, noticeChan chan Notice) {
 
 func handleLog(conn net.Conn, noticeChan chan Notice) {
 	defer conn.Close()
-	scanner := bufio.NewScanner(file)
-	buf := make([]byte, 4096)
+	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		fmt.Println("Got " + scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Error(err)
+		log.Printf("Error reading from connection: %v", err)
 	}
 }
 
 func receive(addr string, port int) {
-	noticeBuffer := make([]int, 0, 100) // len()=0, cap()=100
+	noticeBuffer := make([]Notice, 0, 100) // len()=0, cap()=100
 	noticeChan := make(chan Notice, 100)
 	go listen(addr, port, noticeChan)
 
@@ -56,10 +55,10 @@ func receive(addr string, port int) {
 		select {
 		case <-ticker.C:
 			for _, n := range noticeBuffer {
-				log.Print(s)
+				log.Print(n)
 			}
 			noticeBuffer = noticeBuffer[:0]
-		case note := <-noticeBuffer:
+		case note := <-noticeChan:
 			noticeBuffer = append(noticeBuffer, note)
 		}
 	}
@@ -68,7 +67,6 @@ func receive(addr string, port int) {
 func main() {
 	var port int
 	var addr string
-	var interval time.Duration
 	flag.StringVar(&addr, "addr", "0.0.0.0", "Address to listen on")
 	flag.IntVar(&port, "port", 9000, "Port to listen on")
 	flag.Parse()
