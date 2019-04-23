@@ -54,7 +54,7 @@ func handleLog(conn net.Conn, noticeChan chan Notice) {
 			log.Printf("Error parsing json from connection: %v", err)
 			continue
 		}
-		log.Printf("Got %+v", notice)
+		noticeChan <- notice
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -67,7 +67,7 @@ func receive(addr string, port int) {
 	noticeChan := make(chan Notice, 100)
 	go listen(addr, port, noticeChan)
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
