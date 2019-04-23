@@ -93,15 +93,23 @@ func receive(addr string, port int, cifEndpoint string) {
 	}
 
 	ticker := time.NewTicker(5 * time.Second)
+	var send bool
 	for {
+		send = false
 		select {
 		case <-ticker.C:
 			if len(noticeBuffer) > 0 {
-				createIndicators(c, noticeBuffer)
-				noticeBuffer = noticeBuffer[:0]
+				send = true
 			}
 		case note := <-noticeChan:
 			noticeBuffer = append(noticeBuffer, note)
+			if len(noticeBuffer) > 50 {
+				send = true
+			}
+		}
+		if send {
+			createIndicators(c, noticeBuffer)
+			noticeBuffer = noticeBuffer[:0]
 		}
 	}
 }
