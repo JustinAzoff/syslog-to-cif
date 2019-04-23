@@ -77,7 +77,10 @@ func createIndicators(c *cif.Client, notices []Notice) error {
 		log.Printf("Creating %s %s", i.Indicator, i.Description)
 		indicators = append(indicators, i)
 	}
-	c.CreateIndicators(indicators)
+	err := c.CreateIndicators(indicators)
+	if err != nil {
+		log.Printf("Error creating indicators: %v", err)
+	}
 	return nil
 }
 
