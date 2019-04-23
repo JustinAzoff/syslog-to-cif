@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -11,8 +12,10 @@ import (
 
 //For pushing up to main using channels?
 type Notice struct {
-	Src string `json:"src"`
-	Dst string `json:"dst"`
+	Note string
+	Msg  string
+	Src  string
+	Dst  string
 }
 
 func listen(addr string, port int, noticeChan chan Notice) {
@@ -37,7 +40,13 @@ func handleLog(conn net.Conn, noticeChan chan Notice) {
 	defer conn.Close()
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
+		var notice Notice
 		fmt.Println("Got " + scanner.Text())
+		err := json.Unmarshal(scanner.Bytes(), &notice)
+		if err != nil {
+			log.Printf("Error parsing json from connection: %v", err)
+		}
+		log.Printf("Got %+v", notice)
 	}
 
 	if err := scanner.Err(); err != nil {
