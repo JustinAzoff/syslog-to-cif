@@ -95,8 +95,10 @@ func receive(addr string, port int, cifEndpoint string) {
 	for {
 		select {
 		case <-ticker.C:
-			createIndicators(c, noticeBuffer)
-			noticeBuffer = noticeBuffer[:0]
+			if len(noticeBuffer) > 1 {
+				createIndicators(c, noticeBuffer)
+				noticeBuffer = noticeBuffer[:0]
+			}
 		case note := <-noticeChan:
 			noticeBuffer = append(noticeBuffer, note)
 		}
