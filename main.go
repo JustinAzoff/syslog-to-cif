@@ -66,6 +66,7 @@ func handleLog(conn net.Conn, noticeChan chan Notice) {
 }
 
 func createIndicators(c *cif.Client, notices []Notice) error {
+	log.Printf("Creating %d indicators", len(notices))
 	var indicators cif.IndicatorList
 	for _, n := range notices {
 		i := cif.Indicator{
@@ -95,7 +96,7 @@ func receive(addr string, port int, cifEndpoint string) {
 	for {
 		select {
 		case <-ticker.C:
-			if len(noticeBuffer) > 1 {
+			if len(noticeBuffer) > 0 {
 				createIndicators(c, noticeBuffer)
 				noticeBuffer = noticeBuffer[:0]
 			}
