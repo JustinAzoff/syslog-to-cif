@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -20,6 +21,20 @@ type Notice struct {
 	Msg  string
 	Src  string
 	Dst  string
+}
+
+//Validate determines if the notice has all of the appropriate fields
+func (n Notice) Validate() error {
+	if n.Note == "" {
+		return errors.New("Missing field: Note")
+	}
+	if n.Msg == "" {
+		return errors.New("Missing field: Msg")
+	}
+	if n.Src == "" {
+		return errors.New("Missing field: Src")
+	}
+	return nil
 }
 
 func listen(addr string, port int, noticeChan chan Notice) {
@@ -55,6 +70,10 @@ func handleLog(conn net.Conn, noticeChan chan Notice) {
 		err := json.Unmarshal(jsonBytes, &notice)
 		if err != nil {
 			log.Printf("Error parsing json from connection: %v", err)
+			continue
+		}
+		if err := notice.Validate(); err != nil {
+			log.Printf("invalid notice %+v: %v", notice, err)
 			continue
 		}
 		noticeChan <- notice
