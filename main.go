@@ -37,6 +37,20 @@ func (n Notice) Validate() error {
 	return nil
 }
 
+func enableKeepAlive(conn net.Conn) error {
+	tcp, ok := conn.(*net.TCPConn)
+	if !ok {
+		return fmt.Errorf("Bad conn type: %T", conn)
+	}
+	if err := tcp.SetKeepAlive(true); err != nil {
+		return err
+	}
+	if err := tcp.SetKeepAlivePeriod(50 * time.Second); err != nil {
+		return err
+	}
+	return nil
+}
+
 func listen(addr string, port int, noticeChan chan Notice) {
 	bind := fmt.Sprintf("%s:%d", addr, port)
 	log.Printf("Listening on %s", bind)
@@ -51,6 +65,9 @@ func listen(addr string, port int, noticeChan chan Notice) {
 			log.Fatalf("Error accepting: %v", err)
 		}
 		log.Printf("New connection from %s", conn.RemoteAddr())
+		if err := enableKeepAlive(conn); err != nil {
+			log.Fatalf("Error enabling keepalive: %v", err)
+		}
 		go handleLog(conn, noticeChan)
 	}
 }
